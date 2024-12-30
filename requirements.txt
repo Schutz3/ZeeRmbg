@@ -4,4 +4,5 @@ pillow
 python-dotenv
 numpy
 scipy
+onnxruntime
 opencv-python-headless
