@@ -32,7 +32,7 @@ A simple flask app to remove the background of an image with [Rembg](https://git
 1. Clone the repository
 2. Install dependencies: `pip install -r requirements.txt`
 3. Run the app: `python app.py`
-4. Open your browser and navigate to `http://localhost:5100`
+4. Open your browser and navigate to `http://localhost:9033`
 
 ## Usage
 
