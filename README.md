@@ -1,5 +1,8 @@
 # Zee Remove BG
 A simple flask app to remove the background of an image with [Rembg](https://github.com/danielgatis/rembg)
+<p align="center">
+  <img src="https://raw.githubusercontent.com/Schutz3/assestProject/refs/heads/main/img/Zee-Rmbg.png" alt="Zee Remove BG Preview">
+</p>
 
 ## Deployed site
 
@@ -40,4 +43,4 @@ A simple flask app to remove the background of an image with [Rembg](https://git
 
 ## Author
 
-[Zee](https://scz.my.id/)
+[ScZee](https://scz.my.id/)
