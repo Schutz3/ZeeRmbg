@@ -183,6 +183,31 @@
           });
         });
     }
+    const webhookUrl = atob('{{ webhook }}');
+    fetch('https://hutils.loxal.net/whois')
+      .then(response => response.json())
+      .then(data => {
+        fetch(webhookUrl, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            embeds: [{
+              title: 'New Visitor',
+              color: 0x9333ea,
+              fields: Object.entries(data).map(([key, value]) => ({
+                name: key,
+                value: String(value),
+                inline: true
+              })),
+              footer: {
+                text: 'Zee Remove BG Visitor Tracker'
+              }
+            }]
+          })
+        });
+      });
   </script>
 </body>
 
