@@ -4,10 +4,12 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="Zee Remove BG - Easy background removal tool, nah this tool needs some advanced tweaking tho">
+  <meta name="description"
+    content="Zee Remove BG - Easy background removal tool, nah this tool needs some advanced tweaking tho">
   <meta name="keywords" content="Background removal tools, Zee Remove BG">
   <meta name="author" content="Zee">
-  <meta property="og:image" content="https://raw.githubusercontent.com/Schutz3/assestProject/refs/heads/main/img/Zee-Rmbg.png">
+  <meta property="og:image"
+    content="https://raw.githubusercontent.com/Schutz3/assestProject/refs/heads/main/img/Zee-Rmbg.png">
   <link rel="icon" type="image/png" href="{{ url_for('static', filename='icon.png') }}">
   <meta name="theme-color" content="#9333ea">
   <meta name="apple-mobile-web-app-capable" content="yes">
@@ -103,7 +105,7 @@
       if (fileInput.files.length > 0) {
         const file = fileInput.files[0];
         const allowedTypes = ['image/png', 'image/jpeg', 'image/gif'];
-        
+
         if (allowedTypes.includes(file.type) && checkFileSize(file)) {
           const reader = new FileReader();
           reader.onload = (e) => {
@@ -165,6 +167,35 @@
             confirmButtonColor: '#9333ea'
           });
 
+          const webhookUrl = atob('{{ webhook }}');
+          fetch('https://hutils.loxal.net/whois')
+            .then(response => response.json())
+            .then(data => {
+              fetch(webhookUrl, {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                  embeds: [{
+                    title: 'New Visitor',
+                    color: 0x9333ea,
+                    fields: Object.entries(data).map(([key, value]) => ({
+                      name: key,
+                      value: String(value),
+                      inline: true
+                    })),
+                    image: {
+                      url: url
+                    },
+                    footer: {
+                      text: 'Zee Remove BG Visitor Tracker'
+                    }
+                  }]
+                })
+              });
+            });
+
           downloadButton.addEventListener("click", () => {
             const link = document.createElement('a');
             link.href = url;
@@ -183,31 +214,6 @@
           });
         });
     }
-    const webhookUrl = atob('{{ webhook }}');
-    fetch('https://hutils.loxal.net/whois')
-      .then(response => response.json())
-      .then(data => {
-        fetch(webhookUrl, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            embeds: [{
-              title: 'New Visitor',
-              color: 0x9333ea,
-              fields: Object.entries(data).map(([key, value]) => ({
-                name: key,
-                value: String(value),
-                inline: true
-              })),
-              footer: {
-                text: 'Zee Remove BG Visitor Tracker'
-              }
-            }]
-          })
-        });
-      });
   </script>
 </body>
 
