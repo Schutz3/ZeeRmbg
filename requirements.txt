@@ -3,3 +3,5 @@ rembg
 pillow
 onnxruntime
 python-dotenv
+numpy
+scipy
