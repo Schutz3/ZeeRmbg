@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Zee Remove BG - Easy background removal tool, nah this tool needs some advanced tweaking tho">
+  <meta name="keywords" content="Background removal tools, Zee Remove BG">
+  <meta name="author" content="Zee">
+  <meta property="og:image" content="https://raw.githubusercontent.com/Schutz3/assestProject/refs/heads/main/img/Zee-Rmbg.png">
+  <link rel="icon" type="image/png" href="{{ url_for('static', filename='icon.png') }}">
+  <meta name="theme-color" content="#9333ea">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <title>✂️ Zee Remove BG</title>
+  <link href="https://cdn.jsdelivr.net/npm/daisyui@3.1.0/dist/full.css" rel="stylesheet" type="text/css" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script>
+    tailwind.config = {
+      daisyui: {
+        themes: [
+          {
+            dark: {
+              ...require("daisyui/src/colors/themes")["[data-theme=dark]"],
+              primary: "#9333ea",
+              secondary: "#7e22ce",
+              "base-100": "#1e1b4b",
+            },
+          },
+        ],
+      },
+    }
+  </script>
+</head>
+
+<body class="min-h-screen bg-base-100 flex items-center justify-center p-4">
+  <div class="card w-full max-w-2xl bg-base-300 shadow-xl">
+    <div class="card-body text-center">
+      <h1 class="text-3xl font-bold mb-6 text-primary-content text-center">Zee Remove BG</h1>
+      <div id="dropZone"
+        class="border-4 border-dashed border-primary rounded-box p-8 cursor-pointer transition-all duration-300 hover:bg-base-200">
+        <form id="uploadForm" action="/" method="post" enctype="multipart/form-data" class="space-y-4">
+          <input id="fileInput" type="file" name="file" class="hidden" accept=".png,.jpg,.jpeg" />
+          <p class="text-lg mb-4 text-base-content">Drag and drop your image here, or click to select</p>
+          <button type="button" id="selectButton" class="btn btn-primary">Select Image</button>
+          <button type="button" id="downloadButton" class="btn btn-secondary hidden">Download</button>
+        </form>
+      </div>
+      <div id="preview" class="mt-6 hidden">
+        <h2 class="text-xl font-semibold mb-2 text-base-content">Preview:</h2>
+        <div class="flex justify-center space-x-4">
+          <img id="previewImage" src="" alt="Original Preview" class="max-w-[45%] h-auto rounded-lg shadow-md" />
+          <img id="processedImage" src="" alt="Processed Image" class="max-w-[45%] h-auto rounded-lg shadow-md" />
+        </div>
+      </div>
+    </div>
+  </div>
+  <footer class="footer footer-center p-4 bg-base-300 text-base-content fixed bottom-0 left-0 right-0">
+    <div>
+      <p>Copyright © <span id="year"></span> - <a href="https://scz.my.id/" class="link link-hover">ScZee</a></p>
+    </div>
+  </footer>
+
+  <script>
+    document.getElementById('year').textContent = new Date().getFullYear();
+    const dropZone = document.getElementById("dropZone");
+    const fileInput = document.getElementById("fileInput");
+    const uploadForm = document.getElementById("uploadForm");
+    const selectButton = document.getElementById("selectButton");
+    const downloadButton = document.getElementById("downloadButton");
+    const preview = document.getElementById("preview");
+    const previewImage = document.getElementById("previewImage");
+    const processedImage = document.getElementById("processedImage");
+
+    selectButton.addEventListener("click", () => fileInput.click());
+    fileInput.addEventListener("change", handleFileSelect);
+
+    dropZone.addEventListener("dragover", (e) => {
+      e.preventDefault();
+      dropZone.classList.add("bg-base-200");
+    });
+
+    dropZone.addEventListener("dragleave", (e) => {
+      e.preventDefault();
+      dropZone.classList.remove("bg-base-200");
+    });
+
+    dropZone.addEventListener("drop", (e) => {
+      e.preventDefault();
+      dropZone.classList.remove("bg-base-200");
+      fileInput.files = e.dataTransfer.files;
+      handleFileSelect();
+    });
+
+    // fungsi untuk memeriksa ukuran file
+    function checkFileSize(file) {
+      const maxSize = 10 * 1024 * 1024; // 10 MB dalam bytes
+      return file.size <= maxSize;
+    }
+
+    function handleFileSelect() {
+      if (fileInput.files.length > 0) {
+        const file = fileInput.files[0];
+        const allowedTypes = ['image/png', 'image/jpeg', 'image/gif'];
+        
+        if (allowedTypes.includes(file.type) && checkFileSize(file)) {
+          const reader = new FileReader();
+          reader.onload = (e) => {
+            previewImage.src = e.target.result;
+            preview.classList.remove("hidden");
+          };
+          reader.readAsDataURL(file);
+          processImage();
+        } else {
+          Swal.fire({
+            icon: 'error',
+            title: 'Oops...',
+            text: 'Select an image (png, jpg, jpeg) max file size is 10MB',
+            background: '#1e1b4b',
+            color: '#e2e8f0',
+            confirmButtonColor: '#9333ea'
+          });
+          fileInput.value = '';
+        }
+      }
+    }
+
+    function processImage() {
+      Swal.fire({
+        title: 'Processing...',
+        text: 'While we doing computer vision magic',
+        allowOutsideClick: false,
+        showConfirmButton: false,
+        background: '#1e1b4b',
+        color: '#e2e8f0',
+        willOpen: () => {
+          Swal.showLoading();
+        }
+      });
+
+      const formData = new FormData(uploadForm);
+      fetch('/', {
+        method: 'POST',
+        body: formData
+      })
+        .then(response => {
+          if (!response.ok) {
+            return response.json().then(err => { throw new Error(err.error) });
+          }
+          return response.blob();
+        })
+        .then(blob => {
+          const url = URL.createObjectURL(blob);
+          processedImage.src = url;
+          preview.classList.remove("hidden");
+          downloadButton.classList.remove("hidden");
+
+          Swal.fire({
+            icon: 'success',
+            title: 'Backgroud removed!',
+            text: 'Your image is ready.',
+            background: '#1e1b4b',
+            color: '#e2e8f0',
+            confirmButtonColor: '#9333ea'
+          });
+
+          downloadButton.addEventListener("click", () => {
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = fileInput.files[0].name + '_Zee-rmbg.png';
+            link.click();
+          });
+        })
+        .catch(error => {
+          Swal.fire({
+            icon: 'error',
+            title: 'Oops...',
+            text: 'There is an error, that said: ' + error.message,
+            background: '#1e1b4b',
+            color: '#e2e8f0',
+            confirmButtonColor: '#9333ea'
+          });
+        });
+    }
+  </script>
+</body>
+
+</html>
