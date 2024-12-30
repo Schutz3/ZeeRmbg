@@ -16,10 +16,12 @@ WEBHOOK_URL = os.getenv('DISCORD_WEBHOOK_URL')
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg'}
 
 # definisiin model yang dipake
+# birefenet berat boyy, 
+# model lainnya cek di https://github.com/danielgatis/rembg?tab=readme-ov-file#models
 MODELS = {
     'general': 'u2net',
-    'massive': 'u2net', # birefenet berat boyy, model lainnya cek di https://github.com/danielgatis/rembg?tab=readme-ov-file#models
-    'anime': 'isnet-anime',
+    'massive': 'u2net', 
+    'anime': 'u2net',
     'default': 'u2net'
 }
 
