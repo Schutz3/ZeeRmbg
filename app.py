@@ -17,10 +17,10 @@ ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg'}
 
 # definisiin model yang dipake
 MODELS = {
-    'general': 'BiRefNet-general-epoch_244.onnx',
-    'massive': 'BiRefNet-massive-TR_DIS5K_TR_TEs-epoch_420.onnx',
-    'anime': 'isnet-anime.onnx',
-    'default': 'u2net.onnx'
+    'general': 'u2net',
+    'massive': 'birefnet-general',
+    'anime': 'isnet-anime',
+    'default': 'u2net'
 }
 
 def improve_mask(mask, erosion_factor=5):
@@ -44,7 +44,7 @@ def detect_image_type(image):
     # cek apakah gambarnya kompleks? jika iya maka akan menggukakan model massive
     gray = cv2.cvtColor(cv_image, cv2.COLOR_BGR2GRAY)
     variance = cv2.Laplacian(gray, cv2.CV_64F).var()
-    if variance > 100:  # Adjust this threshold as needed
+    if variance > 95:  # Adjust this threshold as needed
         return 'massive'
     
     # balik ke general
@@ -78,6 +78,7 @@ def upload_file():
                 # deteksi gambar dan milih model yang sesuai
                 image_type = detect_image_type(input_image)
                 model_path = MODELS.get(image_type, MODELS['default'])
+                print(model_path)
                 
                 # bikin sesi baru bersarkan tipe gambar yang terdeteksi
                 session = new_session(model_path)
