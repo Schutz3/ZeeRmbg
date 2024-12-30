@@ -80,7 +80,6 @@ def upload_file():
                 # deteksi gambar dan milih model yang sesuai
                 image_type = detect_image_type(input_image)
                 model_path = MODELS.get(image_type, MODELS['default'])
-                print(model_path)
                 
                 # bikin sesi baru bersarkan tipe gambar yang terdeteksi
                 session = new_session(model_path)
