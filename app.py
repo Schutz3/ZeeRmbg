@@ -18,7 +18,7 @@ ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg'}
 # definisiin model yang dipake
 MODELS = {
     'general': 'u2net',
-    'massive': 'birefnet-general',
+    'massive': 'u2net', # birefenet berat boyy, model lainnya cek di https://github.com/danielgatis/rembg?tab=readme-ov-file#models
     'anime': 'isnet-anime',
     'default': 'u2net'
 }
