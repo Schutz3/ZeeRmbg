@@ -1,8 +1,9 @@
 FROM python:3.9
 
-# download this https://github.com/danielgatis/rembg/releases/download/v0.0.0/u2net.onnx
+# download more models in https://github.com/danielgatis/rembg/releases/download/v0.0.0/
+# on this we were using BiRefNet-massive-TR_DIS5K_TR_TEs-epoch_420.onnx, BiRefNet-general-epoch_244.onnx, isnet-anime.onnx, u2net.onnx  
 # copy model to avoid unnecessary download
-COPY u2net.onnx /home/.u2net/u2net.onnx
+COPY *.onnx /home/.u2net/
 
 WORKDIR /app
 

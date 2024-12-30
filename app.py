@@ -1,29 +1,54 @@
 import os, base64
 from flask import Flask, render_template, request, send_file, jsonify
-from rembg import remove
+from rembg import remove, new_session
 from PIL import Image
 from io import BytesIO
 from dotenv import load_dotenv
 import numpy as np
+import cv2
 
 load_dotenv()
 
 app = Flask(__name__)
 
-# max file 
 MAX_FILE_SIZE = 10 * 1024 * 1024  # 10 mb dalam bytes
 WEBHOOK_URL = os.getenv('DISCORD_WEBHOOK_URL')
-# extensi file yang diperbolehkan
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg'}
 
-# fungsi untuk improve masking gambar
+# definisiin model yang dipake
+MODELS = {
+    'general': 'BiRefNet-general-epoch_244.onnx',
+    'massive': 'BiRefNet-massive-TR_DIS5K_TR_TEs-epoch_420.onnx',
+    'anime': 'isnet-anime.onnx',
+    'default': 'u2net.onnx'
+}
+
 def improve_mask(mask, erosion_factor=5):
     from scipy import ndimage
     mask = ndimage.binary_erosion(mask, iterations=erosion_factor)
     mask = ndimage.binary_dilation(mask, iterations=erosion_factor)
     return mask
+
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
+def detect_image_type(image):
+    # ngubah pil image ke opencv image
+    cv_image = cv2.cvtColor(np.array(image), cv2.COLOR_RGB2BGR)
+    
+    # cek apakah dia wibu? kalo iya make model anime
+    edge_image = cv2.Canny(cv_image, 100, 200)
+    if np.mean(edge_image) > 10:  # Adjust this threshold as needed
+        return 'anime'
+    
+    # cek apakah gambarnya kompleks? jika iya maka akan menggukakan model massive
+    gray = cv2.cvtColor(cv_image, cv2.COLOR_BGR2GRAY)
+    variance = cv2.Laplacian(gray, cv2.CV_64F).var()
+    if variance > 100:  # Adjust this threshold as needed
+        return 'massive'
+    
+    # balik ke general
+    return 'general'
 
 @app.route('/', methods=['GET', 'POST'])
 def upload_file():
@@ -49,20 +74,28 @@ def upload_file():
         if file:
             try:
                 input_image = Image.open(file.stream)
-                # remove background dengan parameter tambahan
+                
+                # deteksi gambar dan milih model yang sesuai
+                image_type = detect_image_type(input_image)
+                model_path = MODELS.get(image_type, MODELS['default'])
+                
+                # bikin sesi baru bersarkan tipe gambar yang terdeteksi
+                session = new_session(model_path)
+                
+                # hapus background make parameter tambahan
                 output = remove(
                     input_image,
+                    session=session,
                     alpha_matting=True,
                     alpha_matting_foreground_threshold=240,
                     alpha_matting_background_threshold=10,
                     post_process_mask=improve_mask
                 )
-                # ngubah numpy jadi array
+                
                 output_array = np.array(output)
-                # menaikan nilai alpha menjadi lebih tinggi
                 output_array[:, :, 3] = np.clip(output_array[:, :, 3] * 1.2, 0, 255)
-                # ubah kemabli menjadi gambar
                 output_image = Image.fromarray(output_array)
+                
                 img_io = BytesIO()
                 output_image.save(img_io, 'PNG')
                 img_io.seek(0)
@@ -70,7 +103,6 @@ def upload_file():
                 return send_file(img_io, mimetype='image/png', as_attachment=True, download_name=downName)
             except Exception as e:
                 return jsonify({'error': f'Error processing image: {str(e)}'}), 500
-
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', debug=True, port=5100)

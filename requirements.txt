@@ -1,7 +1,9 @@
+<<<<<<< Tabnine <<<<<<<
 flask
 rembg
 pillow
-onnxruntime
 python-dotenv
 numpy
 scipy
+opencv-python-headless
+>>>>>>> Tabnine >>>>>>>// {"source":"chat"}
